@@ -35,10 +35,18 @@ class CourseManager {
     getAllCourses() {
         return Array.from(this.courses.values());
     }
+    // tar bort en kurs
+    deleteCourse(code) {
+        this.courses.delete(code);
+        this.saveToStorage();
+    }
 }
 // definierar en klass för att hantera användargränssnittet
 class UIManager {
     constructor(courseManager) {
+        // Skiljer på om vi är i edit-läge eller inte
+        this.isEditing = false;
+        this.currentEditCode = '';
         this.courseManager = courseManager;
         // Vänta med att hämta DOM-element tills vi vet att de finns
         const form = document.getElementById('courseForm');
@@ -68,10 +76,19 @@ class UIManager {
         const syllabus = document.getElementById('syllabus').value;
         const course = { code, name, progression, syllabus };
         try {
+            if (this.isEditing) {
+                // Ta bort den gamla kursen om kurskoden har ändrats
+                if (this.currentEditCode !== code) {
+                    this.courseManager.deleteCourse(this.currentEditCode);
+                }
+            }
             this.courseManager.addOrUpdateCourse(course);
             this.showMessage('Kurs sparad!', 'success');
             this.updateCourseList();
             this.form.reset();
+            // ser till att vi inte är i edit-läge
+            this.isEditing = false;
+            this.currentEditCode = '';
         }
         catch (error) {
             this.showMessage(error.message, 'error');
@@ -102,11 +119,19 @@ class UIManager {
             this.courseListElement.appendChild(courseElement);
         });
     }
+    // startar redigering av en kurs
+    startEditing(code) {
+        this.isEditing = true;
+        this.currentEditCode = code;
+    }
 }
 // Global function för att redigera kurs
 function editCourse(code) {
     const course = courseManager.getCourse(code);
-    if (course) {
+    if (course && uiManager) {
+        // startar edit-läge
+        uiManager.startEditing(code);
+        // sätter värdena i formuläret
         document.getElementById('code').value = course.code;
         document.getElementById('name').value = course.name;
         document.getElementById('progression').value = course.progression;
