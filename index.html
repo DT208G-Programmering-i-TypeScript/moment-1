@@ -1,0 +1,54 @@
+// index.html
+<!DOCTYPE html>
+<html lang="sv">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kurshantering</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Kurshantering</h1>
+
+        <!-- Formulär för att lägga till/uppdatera kurs -->
+        <div class="course-form">
+            <h2>Lägg till/Uppdatera kurs</h2>
+            <form id="courseForm">
+                <div class="form-group">
+                    <label for="code">Kurskod:</label>
+                    <input type="text" id="code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="name">Kursnamn:</label>
+                    <input type="text" id="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="progression">Progression:</label>
+                    <select id="progression" required>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="syllabus">Länk till kursplan:</label>
+                    <input type="url" id="syllabus" required>
+                </div>
+
+                <button type="submit">Spara kurs</button>
+            </form>
+            <!-- Div för att visa meddelanden -->
+            <div id="message"></div>
+        </div>
+
+        <!-- Div för att visa kurslistan -->
+        <div id="courseList" class="course-list"></div>
+    </div>
+</body>
+
+</html>
