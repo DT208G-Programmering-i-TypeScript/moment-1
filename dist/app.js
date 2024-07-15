@@ -1,112 +1,84 @@
-// definierar en interface för kursinformation
-interface CourseInfo {
-    code: string;
-    name: string;
-    progression: 'A' | 'B' | 'C';
-    syllabus: string;
-}
-
+"use strict";
 // definierar en klass för att hantera kursinformation
 class CourseManager {
-    private courses: Map<string, CourseInfo>;
-    private readonly STORAGE_KEY: string = 'courses';
-
     constructor() {
-        this.courses = new Map<string, CourseInfo>();
+        this.STORAGE_KEY = 'courses';
+        this.courses = new Map();
         this.loadFromStorage();
     }
-
     // laddar kursinformation från localStorage
-    private loadFromStorage(): void {
+    loadFromStorage() {
         const storedCourses = localStorage.getItem(this.STORAGE_KEY);
         if (storedCourses) {
-            const coursesArray: CourseInfo[] = JSON.parse(storedCourses);
+            const coursesArray = JSON.parse(storedCourses);
             coursesArray.forEach(course => {
                 this.courses.set(course.code, course);
             });
         }
     }
-
     // sparar kursinformation till localStorage
-    private saveToStorage(): void {
+    saveToStorage() {
         const coursesArray = Array.from(this.courses.values());
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(coursesArray));
     }
-
     // lägger till eller uppdaterar en kurs
-    public addOrUpdateCourse(course: CourseInfo): boolean {
+    addOrUpdateCourse(course) {
         this.courses.set(course.code, course);
         this.saveToStorage();
         return true;
     }
-
     // hämtar en kurs baserat på kurskod
-    public getCourse(code: string): CourseInfo | undefined {
+    getCourse(code) {
         return this.courses.get(code);
     }
-
     // hämtar alla kurser
-    public getAllCourses(): CourseInfo[] {
+    getAllCourses() {
         return Array.from(this.courses.values());
     }
 }
-
 // definierar en klass för att hantera användargränssnittet
 class UIManager {
-    private courseManager: CourseManager;
-    private form: HTMLFormElement;
-    private messageElement: HTMLDivElement;
-    private courseListElement: HTMLDivElement;
-
-    constructor(courseManager: CourseManager) {
+    constructor(courseManager) {
         this.courseManager = courseManager;
-        
         // Vänta med att hämta DOM-element tills vi vet att de finns
         const form = document.getElementById('courseForm');
         const messageElement = document.getElementById('message');
         const courseListElement = document.getElementById('courseList');
-
         if (!form || !messageElement || !courseListElement) {
             throw new Error('Required DOM elements not found');
         }
-
-        this.form = form as HTMLFormElement;
-        this.messageElement = messageElement as HTMLDivElement;
-        this.courseListElement = courseListElement as HTMLDivElement;
-        
+        this.form = form;
+        this.messageElement = messageElement;
+        this.courseListElement = courseListElement;
         this.initializeEventListeners();
         this.updateCourseList();
     }
-
     // initierar eventlisteners för formulär och kurslistan
-    private initializeEventListeners(): void {
-        this.form.addEventListener('submit', (e: Event) => {
+    initializeEventListeners() {
+        this.form.addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleFormSubmit();
         });
     }
-
     // hanterar formulärsubmittning
-    private handleFormSubmit(): void {
-        const code = (document.getElementById('code') as HTMLInputElement).value;
-        const name = (document.getElementById('name') as HTMLInputElement).value;
-        const progression = (document.getElementById('progression') as HTMLSelectElement).value as 'A' | 'B' | 'C';
-        const syllabus = (document.getElementById('syllabus') as HTMLInputElement).value;
-
-        const course: CourseInfo = { code, name, progression, syllabus };
-
+    handleFormSubmit() {
+        const code = document.getElementById('code').value;
+        const name = document.getElementById('name').value;
+        const progression = document.getElementById('progression').value;
+        const syllabus = document.getElementById('syllabus').value;
+        const course = { code, name, progression, syllabus };
         try {
             this.courseManager.addOrUpdateCourse(course);
             this.showMessage('Kurs sparad!', 'success');
             this.updateCourseList();
             this.form.reset();
-        } catch (error) {
-            this.showMessage((error as Error).message, 'error');
+        }
+        catch (error) {
+            this.showMessage(error.message, 'error');
         }
     }
-
     // visar ett meddelande
-    private showMessage(message: string, type: 'success' | 'error'): void {
+    showMessage(message, type) {
         this.messageElement.textContent = message;
         this.messageElement.className = type;
         setTimeout(() => {
@@ -114,12 +86,10 @@ class UIManager {
             this.messageElement.className = '';
         }, 3000);
     }
-
     // uppdaterar kurslistan
-    private updateCourseList(): void {
+    updateCourseList() {
         this.courseListElement.innerHTML = '';
         const courses = this.courseManager.getAllCourses();
-
         courses.forEach(course => {
             const courseElement = document.createElement('div');
             courseElement.className = 'course-card';
@@ -133,18 +103,16 @@ class UIManager {
         });
     }
 }
-
 // Global function för att redigera kurs
-function editCourse(code: string): void {
+function editCourse(code) {
     const course = courseManager.getCourse(code);
     if (course) {
-        (document.getElementById('code') as HTMLInputElement).value = course.code;
-        (document.getElementById('name') as HTMLInputElement).value = course.name;
-        (document.getElementById('progression') as HTMLSelectElement).value = course.progression;
-        (document.getElementById('syllabus') as HTMLInputElement).value = course.syllabus;
+        document.getElementById('code').value = course.code;
+        document.getElementById('name').value = course.name;
+        document.getElementById('progression').value = course.progression;
+        document.getElementById('syllabus').value = course.syllabus;
     }
 }
-
 // Initialisering
 const courseManager = new CourseManager();
 const uiManager = new UIManager(courseManager);
