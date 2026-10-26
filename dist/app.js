@@ -70,12 +70,21 @@ class UIManager {
     }
     // hanterar formulärsubmittning
     handleFormSubmit() {
-        const code = document.getElementById('code').value;
+        const code = document.getElementById('code').value.trim();
         const name = document.getElementById('name').value;
         const progression = document.getElementById('progression').value;
         const syllabus = document.getElementById('syllabus').value;
         const course = { code, name, progression, syllabus };
         try {
+            const existingCourse = this.courseManager.getAllCourses().find((savedCourse) => savedCourse.code.toLowerCase() === code.toLowerCase());
+            if (existingCourse && (!this.isEditing || existingCourse.code !== this.currentEditCode)) {
+                this.showMessage('Det finns redan en kurs med den kurskoden.', 'error');
+                return;
+            }
+            if (progression !== 'A' && progression !== 'B' && progression !== 'C') {
+                this.showMessage('Progression måste vara A, B eller C.', 'error');
+                return;
+            }
             if (this.isEditing) {
                 // Ta bort den gamla kursen om kurskoden har ändrats
                 if (this.currentEditCode !== code) {
@@ -115,6 +124,7 @@ class UIManager {
                 <p><strong>Progression:</strong> ${course.progression}</p>
                 <p><strong>Kursplan:</strong> <a href="${course.syllabus}" target="_blank">Öppna kursplan</a></p>
                 <button onclick="editCourse('${course.code}')">Redigera</button>
+                <button onclick="deleteCourse('${course.code}')">Radera</button>
             `;
             this.courseListElement.appendChild(courseElement);
         });
@@ -123,6 +133,21 @@ class UIManager {
     startEditing(code) {
         this.isEditing = true;
         this.currentEditCode = code;
+    }
+    removeCourse(code) {
+        this.courseManager.deleteCourse(code);
+        this.updateCourseList();
+        if (this.isEditing && this.currentEditCode === code) {
+            this.form.reset();
+            this.isEditing = false;
+            this.currentEditCode = '';
+        }
+        this.showMessage('Kurs raderad!', 'success');
+    }
+}
+function deleteCourse(code) {
+    if (confirm('Vill du radera kursen?')) {
+        uiManager.removeCourse(code);
     }
 }
 // Global function för att redigera kurs
