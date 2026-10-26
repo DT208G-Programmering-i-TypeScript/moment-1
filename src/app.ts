@@ -97,7 +97,7 @@ class UIManager {
 
     // hanterar formulärsubmittning
     private handleFormSubmit(): void {
-        const code = (document.getElementById('code') as HTMLInputElement).value;
+        const code = (document.getElementById('code') as HTMLInputElement).value.trim();
         const name = (document.getElementById('name') as HTMLInputElement).value;
         const progression = (document.getElementById('progression') as HTMLSelectElement).value as 'A' | 'B' | 'C';
         const syllabus = (document.getElementById('syllabus') as HTMLInputElement).value;
@@ -105,6 +105,17 @@ class UIManager {
         const course: CourseInfo = { code, name, progression, syllabus };
 
         try {
+            const existingCourse = this.courseManager.getAllCourses().find(
+                (savedCourse: CourseInfo): boolean => savedCourse.code.toLowerCase() === code.toLowerCase()
+            );
+            if (existingCourse && (!this.isEditing || existingCourse.code !== this.currentEditCode)) {
+                this.showMessage('Det finns redan en kurs med den kurskoden.', 'error');
+                return;
+            }
+            if (progression !== 'A' && progression !== 'B' && progression !== 'C') {
+                this.showMessage('Progression måste vara A, B eller C.', 'error');
+                return;
+            }
             if (this.isEditing) {
                 // Ta bort den gamla kursen om kurskoden har ändrats
                 if (this.currentEditCode !== code) {
@@ -147,6 +158,7 @@ class UIManager {
                 <p><strong>Progression:</strong> ${course.progression}</p>
                 <p><strong>Kursplan:</strong> <a href="${course.syllabus}" target="_blank">Öppna kursplan</a></p>
                 <button onclick="editCourse('${course.code}')">Redigera</button>
+                <button onclick="deleteCourse('${course.code}')">Radera</button>
             `;
             this.courseListElement.appendChild(courseElement);
         });
@@ -156,6 +168,23 @@ class UIManager {
     public startEditing(code: string): void {
         this.isEditing = true;
         this.currentEditCode = code;
+    }
+
+    public removeCourse(code: string): void {
+        this.courseManager.deleteCourse(code);
+        this.updateCourseList();
+        if (this.isEditing && this.currentEditCode === code) {
+            this.form.reset();
+            this.isEditing = false;
+            this.currentEditCode = '';
+        }
+        this.showMessage('Kurs raderad!', 'success');
+    }
+}
+
+function deleteCourse(code: string): void {
+    if (confirm('Vill du radera kursen?')) {
+        uiManager.removeCourse(code);
     }
 }
 
